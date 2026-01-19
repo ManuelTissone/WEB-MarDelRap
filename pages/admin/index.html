@@ -232,6 +232,7 @@
         <div class="admin-tabs">
             <button class="tab-btn-admin active" data-tab="crear">Crear Evento</button>
             <button class="tab-btn-admin" data-tab="gestionar">Gestionar Eventos</button>
+            <button class="tab-btn-admin" data-tab="galeria">Galería</button>
         </div>
 
         <div class="admin-content">
@@ -362,6 +363,44 @@
                     </form>
                 </div>
             </div>
+             <!-- Sección Galería -->
+            <div id="galeria" class="section-admin">
+                <h2>Gestionar Galerías de Eventos</h2>
+                <div id="alertGaleria"></div>
+                
+                <div style="background: #f9f9f9; padding: 20px; border-radius: 5px; margin-bottom: 30px;">
+                    <h3>Agregar Fotos a Evento Pasado</h3>
+                    <form id="formSubirGaleria">
+                        <div class="form-group">
+                            <label>Seleccionar Evento Pasado *</label>
+                            <select id="galeriaEventoSelect" required>
+                                <option value="">Cargando eventos...</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label>Subir Fotos (máximo 10) *</label>
+                            <input type="file" id="galeriaFotos" accept="image/*" multiple required>
+                            <p style="color: #666; font-size: 0.9rem; margin-top: 5px;">
+                                Seleccioná entre 5 y 10 fotos. JPG, PNG (máx 5MB cada una)
+                            </p>
+                            <div id="galeriaUploadProgress" style="display: none; margin-top: 10px;">
+                                <p>Subiendo fotos: <span id="galeriaProgressText">0/0</span></p>
+                                <div style="width: 100%; background: #ddd; height: 20px; border-radius: 5px;">
+                                    <div id="galeriaProgressBar" style="width: 0%; background: var(--color-primary); height: 100%; border-radius: 5px; transition: width 0.3s;"></div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <button type="submit" class="btn-submit">Subir Galería</button>
+                    </form>
+                </div>
+
+                <h3>Galerías Existentes</h3>
+                <div id="galeriasListContainer">
+                    <p>Cargando galerías...</p>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -391,7 +430,9 @@
                 }
 
                 console.log('Admin autenticado:', user.email);
-                cargarEventos();
+                    cargarEventos();
+                    cargarGaleriasAdmin();
+                    cargarEventosPasados();
             } catch (error) {
                 console.error('Error verificando admin:', error);
                 alert('Error de autenticación');
@@ -694,6 +735,217 @@
                 auth.signOut().then(() => {
                     window.location.href = '../../index.html';
                 });
+            }
+        }
+        // Cargar eventos pasados en el dropdown
+        async function cargarEventosPasados() {
+            const select = document.getElementById('galeriaEventoSelect');
+            select.innerHTML = '<option value="">Seleccionar evento...</option>';
+            
+            try {
+                const hoy = new Date().toISOString().split('T')[0]; // Formato YYYY-MM-DD
+                
+                const eventosSnapshot = await db.collection('eventos')
+                    .where('fecha', '<', hoy)
+                    .orderBy('fecha', 'desc')
+                    .get();
+                
+                if (eventosSnapshot.empty) {
+                    select.innerHTML = '<option value="">No hay eventos pasados</option>';
+                    return;
+                }
+                
+                eventosSnapshot.forEach(doc => {
+                    const evento = doc.data();
+                    const option = document.createElement('option');
+                    option.value = doc.id;
+                    option.textContent = `${evento.titulo} - ${evento.fecha}`;
+                    select.appendChild(option);
+                });
+                
+            } catch (error) {
+                console.error('Error cargando eventos pasados:', error);
+                select.innerHTML = '<option value="">Error cargando eventos</option>';
+            }
+        }
+
+        // Subir galería de fotos
+        document.getElementById('formSubirGaleria').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const alertDiv = document.getElementById('alertGaleria');
+            const progressDiv = document.getElementById('galeriaUploadProgress');
+            const progressText = document.getElementById('galeriaProgressText');
+            const progressBar = document.getElementById('galeriaProgressBar');
+            alertDiv.innerHTML = '';
+
+            const eventoId = document.getElementById('galeriaEventoSelect').value;
+            const files = document.getElementById('galeriaFotos').files;
+
+            if (!eventoId) {
+                alertDiv.innerHTML = '<div class="alert alert-error">Debes seleccionar un evento</div>';
+                return;
+            }
+
+            if (files.length < 5) {
+                alertDiv.innerHTML = '<div class="alert alert-error">Debes subir al menos 5 fotos</div>';
+                return;
+            }
+
+            if (files.length > 10) {
+                alertDiv.innerHTML = '<div class="alert alert-error">Máximo 10 fotos por galería</div>';
+                return;
+            }
+
+            // Validar tamaños
+            for (let file of files) {
+                if (file.size > 5 * 1024 * 1024) {
+                    alertDiv.innerHTML = '<div class="alert alert-error">Cada foto debe ser menor a 5MB</div>';
+                    return;
+                }
+            }
+
+            try {
+                progressDiv.style.display = 'block';
+                const fotosUrls = [];
+                
+                // Subir cada foto
+                for (let i = 0; i < files.length; i++) {
+                    progressText.textContent = `${i + 1}/${files.length}`;
+                    progressBar.style.width = `${((i + 1) / files.length) * 100}%`;
+                    
+                    const formData = new FormData();
+                    formData.append('image', files[i]);
+
+                    const imgbbResponse = await fetch('https://api.imgbb.com/1/upload?key=cb5abb61096d1d7a006b53ec2a9c38f9', {
+                        method: 'POST',
+                        body: formData
+                    });
+
+                    const imgbbData = await imgbbResponse.json();
+
+                    if (!imgbbData.success) {
+                        throw new Error(`Error subiendo foto ${i + 1}`);
+                    }
+
+                    fotosUrls.push(imgbbData.data.url);
+                }
+
+                progressDiv.style.display = 'none';
+                progressBar.style.width = '0%';
+
+                // Obtener datos del evento
+                const eventoDoc = await db.collection('eventos').doc(eventoId).get();
+                const evento = eventoDoc.data();
+
+                // Verificar si ya existe galería para este evento
+                const galeriaExistente = await db.collection('galerias')
+                    .where('eventoId', '==', eventoId)
+                    .get();
+
+                if (!galeriaExistente.empty) {
+                    // Actualizar galería existente (agregar fotos)
+                    const galeriaDoc = galeriaExistente.docs[0];
+                    const fotosActuales = galeriaDoc.data().fotos || [];
+                    
+                    await db.collection('galerias').doc(galeriaDoc.id).update({
+                        fotos: [...fotosActuales, ...fotosUrls]
+                    });
+                } else {
+                    // Crear nueva galería
+                    await db.collection('galerias').add({
+                        eventoId: eventoId,
+                        titulo: evento.titulo,
+                        fecha: evento.fecha,
+                        fotos: fotosUrls,
+                        creadoEn: firebase.firestore.FieldValue.serverTimestamp()
+                    });
+                }
+                
+                alertDiv.innerHTML = '<div class="alert alert-success">Galería subida exitosamente</div>';
+                e.target.reset();
+                cargarGaleriasAdmin();
+                
+                setTimeout(() => {
+                    alertDiv.innerHTML = '';
+                }, 3000);
+                
+            } catch (error) {
+                console.error('Error subiendo galería:', error);
+                progressDiv.style.display = 'none';
+                alertDiv.innerHTML = '<div class="alert alert-error">Error: ' + error.message + '</div>';
+            }
+        });
+
+        // Cargar galerías en admin
+        async function cargarGaleriasAdmin() {
+            const container = document.getElementById('galeriasListContainer');
+            container.innerHTML = '';
+
+            try {
+                const galeriasSnapshot = await db.collection('galerias')
+                    .orderBy('fecha', 'desc')
+                    .get();
+
+                if (galeriasSnapshot.empty) {
+                    container.innerHTML = '<p>No hay galerías creadas</p>';
+                    return;
+                }
+
+                galeriasSnapshot.forEach(doc => {
+                    const galeria = doc.data();
+                    const galeriaId = doc.id;
+
+                    const item = document.createElement('div');
+                    item.style.cssText = 'background: #fff; padding: 20px; margin-bottom: 20px; border-radius: 5px; box-shadow: 0 2px 5px rgba(0,0,0,0.1);';
+                    
+                    const grid = document.createElement('div');
+                    grid.style.cssText = 'display: grid; grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); gap: 10px; margin-bottom: 15px;';
+                    
+                    galeria.fotos.forEach(fotoUrl => {
+                        const img = document.createElement('img');
+                        img.src = fotoUrl;
+                        img.style.cssText = 'width: 100%; height: 100px; object-fit: cover; border-radius: 5px;';
+                        grid.appendChild(img);
+                    });
+                    
+                    item.innerHTML = `
+                        <h4>${galeria.titulo}</h4>
+                        <p style="color: #666; margin-bottom: 10px;">${galeria.fecha} | ${galeria.fotos.length} fotos</p>
+                    `;
+                    item.appendChild(grid);
+                    
+                    const deleteBtn = document.createElement('button');
+                    deleteBtn.className = 'btn-delete';
+                    deleteBtn.textContent = 'Eliminar Galería';
+                    deleteBtn.style.cssText = 'width: 100%; padding: 10px;';
+                    deleteBtn.onclick = () => eliminarGaleria(galeriaId);
+                    item.appendChild(deleteBtn);
+                    
+                    container.appendChild(item);
+                });
+
+            } catch (error) {
+                console.error('Error cargando galerías:', error);
+                container.innerHTML = '<p style="color: red;">Error cargando galerías</p>';
+            }
+        }
+
+        // Eliminar galería
+        async function eliminarGaleria(galeriaId) {
+            if (!confirm('¿Eliminar toda esta galería? Esta acción no se puede deshacer.')) return;
+
+            try {
+                await db.collection('galerias').doc(galeriaId).delete();
+
+                const alertDiv = document.getElementById('alertGaleria');
+                alertDiv.innerHTML = '<div class="alert alert-success">Galería eliminada</div>';
+                setTimeout(() => alertDiv.innerHTML = '', 3000);
+
+                cargarGaleriasAdmin();
+            } catch (error) {
+                console.error('Error eliminando galería:', error);
+                alert('Error al eliminar galería');
             }
         }
     </script>

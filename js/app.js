@@ -3,12 +3,6 @@ const eventosEjemplo = [
 
 ];
 
-const galeriaEjemplo = [
-    "assets/images/galeria1.jpg",
-    "assets/images/galeria2.jpg",
-    "assets/images/galeria3.jpg",
-    "assets/images/galeria4.jpg"
-];
 
 // Smooth scroll para navegación
 document.querySelectorAll('.scroll-link').forEach(link => {
@@ -37,7 +31,6 @@ hamburger.addEventListener('click', () => {
     navLinks.classList.toggle('active');
 });
 
-// Cargar eventos
 // Cargar eventos desde Firebase
 async function cargarEventos() {
     const container = document.getElementById('eventosContainer');
@@ -84,22 +77,62 @@ async function cargarEventos() {
     }
 }
 
-// Cargar galería
-function cargarGaleria() {
+// Cargar galería desde Firebase
+// Cargar galerías de eventos pasados
+async function cargarGaleria() {
     const container = document.getElementById('galeriaContainer');
+    container.innerHTML = '';
     
-    galeriaEjemplo.forEach((imagen, index) => {
-        const img = document.createElement('img');
-        img.src = imagen;
-        img.alt = `Galería ${index + 1}`;
-        img.className = 'galeria-img';
-        img.onerror = function() {
-            this.src = 'https://via.placeholder.com/250?text=Foto';
-        };
+    try {
+        const galeriasSnapshot = await db.collection('galerias')
+            .orderBy('fecha', 'desc')
+            .get();
         
-        container.appendChild(img);
-    });
+        if (galeriasSnapshot.empty) {
+            container.innerHTML = '<p style="text-align:center; color:#999;">No hay galerías aún</p>';
+            return;
+        }
+        
+        galeriasSnapshot.forEach(doc => {
+            const galeria = doc.data();
+            
+            // Solo mostrar si tiene fotos
+            if (!galeria.fotos || galeria.fotos.length === 0) return;
+            
+            // Crear contenedor por evento
+            const eventoDiv = document.createElement('div');
+            eventoDiv.className = 'galeria-evento';
+
+            const titulo = document.createElement('h3');
+            titulo.textContent = galeria.titulo;
+            eventoDiv.appendChild(titulo);
+            
+            // Grid de fotos
+            const grid = document.createElement('div');
+            grid.className = 'galeria-grid';
+            
+            galeria.fotos.forEach((fotoUrl, index) => {
+                const img = document.createElement('img');
+                img.src = fotoUrl;
+                img.alt = `${galeria.titulo} - Foto ${index + 1}`;
+                img.className = 'galeria-img';
+                img.onerror = function() {
+                    this.src = 'https://via.placeholder.com/250?text=Foto';
+                };
+                grid.appendChild(img);
+            });
+            
+            eventoDiv.appendChild(grid);
+            container.appendChild(eventoDiv);
+        });
+        
+    } catch (error) {
+        console.error('Error cargando galerías:', error);
+        container.innerHTML = '<p style="text-align:center; color:red;">Error cargando galerías</p>';
+    }
 }
+
+
 
 // Formatear fecha
 function formatearFecha(fecha) {
