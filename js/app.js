@@ -102,29 +102,75 @@ async function cargarGaleria() {
             // Crear contenedor por evento
             const eventoDiv = document.createElement('div');
             eventoDiv.className = 'galeria-evento';
+    
+            // Contenedor con imagen principal y botón expandir
+            const preview = document.createElement('div');
+            preview.className = 'galeria-preview';
+            preview.style.cssText = 'cursor: pointer; position: relative; display: inline-block; width: 100%;';
 
-            const titulo = document.createElement('h3');
-            titulo.textContent = galeria.titulo;
-            eventoDiv.appendChild(titulo);
-            
-            // Grid de fotos
+            const imgPrincipal = document.createElement('img');
+            imgPrincipal.src = galeria.fotos[0];
+            imgPrincipal.alt = galeria.titulo;
+            imgPrincipal.className = 'galeria-img-principal';
+            imgPrincipal.style.cssText = 'width: 100%; height: 250px; object-fit: cover; border-radius: 5px;';
+            // Overlay con info del evento
+            const infoOverlay = document.createElement('div');
+            infoOverlay.style.cssText = 'position: absolute; top: 20px; left: 20px; background: rgba(0,0,0,0.8); color: white; padding: 15px 20px; border-radius: 5px;';
+            infoOverlay.innerHTML = `
+                <h4 style="margin: 0 0 5px 0; font-size: 1.3rem;">${galeria.titulo}</h4>
+                <p style="margin: 0; font-size: 0.9rem; opacity: 0.9;">${formatearFecha(galeria.fecha)}</p>
+            `;
+
+            // Overlay "Ver galería"
+            const overlay = document.createElement('div');
+            overlay.className = 'galeria-overlay';
+            overlay.style.cssText = 'position: absolute; bottom: 20px; left: 20px; background: rgba(255,107,0,0.9); color: white; padding: 10px 20px; border-radius: 5px; font-size: 1rem; font-weight: bold;';
+            overlay.textContent = `Ver galería (${galeria.fotos.length} fotos)`;
+
+            preview.appendChild(imgPrincipal);
+            preview.appendChild(infoOverlay);
+            preview.appendChild(overlay);
+
+            // Grid oculto con todas las fotos
+            const gridId = 'grid-' + doc.id;
             const grid = document.createElement('div');
+            grid.id = gridId;
             grid.className = 'galeria-grid';
-            
+            grid.style.display = 'none';
+
             galeria.fotos.forEach((fotoUrl, index) => {
                 const img = document.createElement('img');
                 img.src = fotoUrl;
                 img.alt = `${galeria.titulo} - Foto ${index + 1}`;
                 img.className = 'galeria-img';
+                img.dataset.index = index;
+                img.dataset.galeriaId = doc.id;
+                img.onclick = () => abrirLightbox(doc.id, index);
                 img.onerror = function() {
                     this.src = 'https://via.placeholder.com/250?text=Foto';
                 };
-                grid.appendChild(img);
+                grid.appendChild(img);  // Agregar IMAGEN al grid
             });
-            
-            eventoDiv.appendChild(grid);
-            container.appendChild(eventoDiv);
+
+            // Click en preview para expandir
+            preview.onclick = () => {
+                const gridElement = document.getElementById(gridId);
+                if (gridElement.style.display === 'none') {
+                    gridElement.style.display = 'grid';
+                    overlay.textContent = 'Ocultar galería';
+                } else {
+                    gridElement.style.display = 'none';
+                    overlay.textContent = `Ver galería (${galeria.fotos.length} fotos)`;
+                }
+            };
+
+            eventoDiv.appendChild(preview);  // Agregar preview al evento
+            eventoDiv.appendChild(grid);     // Agregar grid al evento
+            container.appendChild(eventoDiv); // Agregar evento al container
         });
+        
+
+        
         
     } catch (error) {
         console.error('Error cargando galerías:', error);
@@ -191,4 +237,65 @@ function actualizarUIUsuario(usuario) {
     });
     
     loginBtn.classList.add('user-logged');
+}
+// Lightbox para galería
+let galeriaActual = [];
+let indexActual = 0;
+
+function abrirLightbox(galeriaId, index) {
+    // Obtener fotos de la galería
+    db.collection('galerias').doc(galeriaId).get().then(doc => {
+        if (!doc.exists) return;
+        
+        galeriaActual = doc.data().fotos;
+        indexActual = index;
+        mostrarLightbox();
+    });
+}
+
+function mostrarLightbox() {
+    // Crear lightbox si no existe
+    let lightbox = document.getElementById('lightbox');
+    if (!lightbox) {
+        lightbox = document.createElement('div');
+        lightbox.id = 'lightbox';
+        lightbox.style.cssText = 'display: none; position: fixed; z-index: 9999; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.95); align-items: center; justify-content: center;';
+        
+        lightbox.innerHTML = `
+            <span style="position: absolute; top: 20px; right: 40px; color: white; font-size: 3rem; cursor: pointer;" onclick="cerrarLightbox()">&times;</span>
+            <span style="position: absolute; left: 40px; top: 50%; transform: translateY(-50%); color: white; font-size: 3rem; cursor: pointer; user-select: none;" onclick="navegarLightbox(-1)">&#10094;</span>
+            <img id="lightbox-img" style="max-width: 90%; max-height: 90%; object-fit: contain;">
+            <span style="position: absolute; right: 40px; top: 50%; transform: translateY(-50%); color: white; font-size: 3rem; cursor: pointer; user-select: none;" onclick="navegarLightbox(1)">&#10095;</span>
+            <div style="position: absolute; bottom: 20px; color: white; font-size: 1.2rem;" id="lightbox-counter"></div>
+        `;
+        
+        document.body.appendChild(lightbox);
+        
+        // Cerrar con ESC
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') cerrarLightbox();
+            if (e.key === 'ArrowLeft') navegarLightbox(-1);
+            if (e.key === 'ArrowRight') navegarLightbox(1);
+        });
+    }
+    
+    // Mostrar imagen actual
+    document.getElementById('lightbox-img').src = galeriaActual[indexActual];
+    document.getElementById('lightbox-counter').textContent = `${indexActual + 1} / ${galeriaActual.length}`;
+    lightbox.style.display = 'flex';
+    document.body.style.overflow = 'hidden';
+}
+
+function cerrarLightbox() {
+    document.getElementById('lightbox').style.display = 'none';
+    document.body.style.overflow = 'auto';
+}
+
+function navegarLightbox(direccion) {
+    indexActual += direccion;
+    if (indexActual < 0) indexActual = galeriaActual.length - 1;
+    if (indexActual >= galeriaActual.length) indexActual = 0;
+    
+    document.getElementById('lightbox-img').src = galeriaActual[indexActual];
+    document.getElementById('lightbox-counter').textContent = `${indexActual + 1} / ${galeriaActual.length}`;
 }
