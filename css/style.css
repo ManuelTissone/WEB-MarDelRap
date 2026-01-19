@@ -171,35 +171,38 @@ section {
     text-transform: uppercase;
 }
 .galeria .section-title {
-    font-size: 2.5rem;
+    font-size: 1.8rem;
     font-weight: 900;
-    letter-spacing: 8px;
+    letter-spacing: 5px;
     text-transform: uppercase;
     background: linear-gradient(135deg, var(--color-primary), var(--color-accent));
+    
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
     margin-bottom: 60px;
-    text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
+    filter: drop-shadow(8px 8px 15px rgba(0, 0, 0, 0.5));
+    
 }
+
 
 @media (max-width: 768px) {
     .galeria .section-title {
-        font-size: 2.5rem;
+        font-size: 1.2rem;
         letter-spacing: 4px;
     }
 }
 
 /* Eventos */
 .eventos .section-title {
-    font-size: 2.5rem;
+    font-size: 1.8rem;
     font-weight: 900;
     letter-spacing: 5px;
     text-transform: uppercase;
-    color: #fff;
+    color: #2e2929;
     text-shadow: 
-        3px 3px 6px rgba(0,0,0,0.8),
-        0 0 20px rgba(0, 0, 0, 0.5);
+        3px 3px 6px rgba(0, 0, 0, 0.212),
+        0 0 20px rgba(0, 0, 0, 0);
     margin-bottom: 60px;
     position: relative;
     z-index: 1;
@@ -207,8 +210,8 @@ section {
 
 @media (max-width: 768px) {
     .eventos .section-title {
-        font-size: 2.5rem;
-        letter-spacing: 4px;
+        font-size: 1.2rem;
+        letter-spacing: 2px;
     }
 }
 .eventos {
@@ -222,15 +225,21 @@ section {
     left: 0;
     width: 100%;
     height: 100%;
-    background: url('../assets/images/ADD/mdr\ fopndo.jpeg') center/cover no-repeat;
+    background: url('../assets/images/ADD/mdr\ fopndo.jpeg') center center no-repeat;
     background-size: 120%;
     opacity: 0.3;
     z-index: 0;
 }
 
+@media (max-width: 1200px) {
+    .eventos::before {
+        background-size: 200%;
+    }
+}
+
 @media (max-width: 768px) {
     .eventos::before {
-        background-size: cover;
+        background-size: 200&;
         background-position: center;
     }
 }
@@ -304,7 +313,27 @@ section {
     background: var(--color-accent);
     color: var(--color-secondary);
 }
+/* NOSOTROS */
+.nosotros .section-title {
+    font-size: 1.8rem;
+    font-weight: 900;
+    letter-spacing: 5px;
+    text-transform: uppercase;
+    color: #fff;
+    text-shadow: 
+        3px 3px 6px rgba(0, 0, 0, 0.5),
+       
+    margin-bottom: 60px;
+    position: relative;
+    z-index: 1;
+}
 
+@media (max-width: 768px) {
+    .nosotros .section-title {
+        font-size: 1.2rem;
+        letter-spacing: 2px;
+    }
+}
 /* Galería */
 .galeria {
     background: url('../assets/images/ADD/fondoGaleria.jpeg') center/cover no-repeat;
@@ -381,9 +410,10 @@ section {
 
 .sponsor-logo {
     height: 150px;
+    max-width: 200px;
     width: auto;
     object-fit: contain;
-    filter: grayscale(100%);
+    filter: grayscale(0%);
     transition: filter 0.3s;
 }
 
