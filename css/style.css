@@ -239,7 +239,7 @@ section {
 
 @media (max-width: 768px) {
     .eventos::before {
-        background-size: 200&;
+        background-size: 200%;
         background-position: center;
     }
 }
