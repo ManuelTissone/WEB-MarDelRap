@@ -490,11 +490,13 @@ section {
     /*FIX CELULAR*/
     .eventos-grid {
         grid-template-columns: 1fr;
-        gap: 20px;
+        gap: 10px;
     }
 
+    
     .evento-card {
-        max-width: 100%;
+        max-width: 100%; 
+        
     }
 
     .evento-img {
@@ -502,11 +504,11 @@ section {
     }
 
     .evento-info {
-        padding: 15px;
+        padding: 5px;
     }
 
     .evento-info h3 {
-        font-size: 1.3rem;
+        font-size: 1.5rem;
     }
 
     .galeria-grid {
