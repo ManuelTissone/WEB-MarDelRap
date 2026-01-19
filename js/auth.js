@@ -140,6 +140,16 @@ auth.onAuthStateChanged(async (user) => {
     const loginBtn = document.getElementById('loginBtn');
     
     if (user) {
+        // Verificar si es admin
+        const adminDoc = await db.collection('admins').doc(user.email).get();
+        if (adminDoc.exists && adminDoc.data().role === 'admin') {
+            // Agregar botón admin si no existe
+            if (!document.getElementById('adminBtn')) {
+                const adminBtn = document.createElement('li');
+                adminBtn.innerHTML = '<a href="pages/admin/index.html" id="adminBtn">Admin</a>';
+                document.querySelector('.nav-links').appendChild(adminBtn);
+            }
+        }
         // Usuario logueado
         const userData = await db.collection('usuarios').doc(user.uid).get();
         const nombre = userData.exists ? userData.data().nombre : user.displayName || user.email;

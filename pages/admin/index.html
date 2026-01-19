@@ -1,0 +1,701 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Panel Admin - Mar del Rap</title>
+    <link rel="stylesheet" href="../../css/style.css">
+    <style>
+        .admin-container {
+            max-width: 1200px;
+            margin: 100px auto 50px;
+            padding: 40px;
+        }
+
+        .admin-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 40px;
+        }
+
+        .admin-header h1 {
+            color: var(--color-secondary);
+        }
+
+        .btn-logout-admin {
+            background: #dc3545;
+            color: #fff;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        .admin-tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 30px;
+            border-bottom: 2px solid #ddd;
+        }
+
+        .tab-btn-admin {
+            padding: 12px 24px;
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 1rem;
+            color: #666;
+            border-bottom: 3px solid transparent;
+        }
+
+        .tab-btn-admin.active {
+            color: var(--color-primary);
+            border-bottom-color: var(--color-primary);
+        }
+
+        .admin-content {
+            background: #fff;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+
+        .section-admin {
+            display: none;
+        }
+
+        .section-admin.active {
+            display: block;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+            color: #333;
+        }
+
+        .form-group input,
+        .form-group textarea,
+        .form-group select {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 1rem;
+        }
+
+        .form-group textarea {
+            resize: vertical;
+            min-height: 100px;
+        }
+
+        .btn-submit {
+            background: var(--color-primary);
+            color: #fff;
+            padding: 12px 30px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 1rem;
+        }
+
+        .btn-submit:hover {
+            background: var(--color-accent);
+            color: var(--color-secondary);
+        }
+
+        .eventos-list {
+            margin-top: 30px;
+        }
+
+        .evento-item-admin {
+            background: #f5f5f5;
+            padding: 20px;
+            margin-bottom: 15px;
+            border-radius: 5px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .evento-info-admin h3 {
+            margin-bottom: 10px;
+            color: var(--color-secondary);
+        }
+
+        .evento-actions {
+            display: flex;
+            gap: 10px;
+        }
+
+        .btn-edit, .btn-delete, .btn-toggle {
+            padding: 8px 15px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 0.9rem;
+        }
+
+        .btn-edit {
+            background: #007bff;
+            color: #fff;
+        }
+
+        .btn-delete {
+            background: #dc3545;
+            color: #fff;
+        }
+
+        .btn-toggle {
+            background: #28a745;
+            color: #fff;
+        }
+
+        .btn-toggle.inactive {
+            background: #6c757d;
+        }
+
+        .alert {
+            padding: 15px;
+            margin-bottom: 20px;
+            border-radius: 5px;
+        }
+
+        .alert-success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .alert-error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.7);
+            overflow-y: auto;
+        }
+
+        .modal.active {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .modal-content-admin {
+            background: #fff;
+            padding: 40px;
+            border-radius: 10px;
+            max-width: 600px;
+            width: 100%;
+            max-height: 90vh;
+            overflow-y: auto;
+            position: relative;
+        }
+
+        .close-admin {
+            position: absolute;
+            right: 20px;
+            top: 15px;
+            font-size: 2rem;
+            cursor: pointer;
+            color: #999;
+        }
+
+        .close-admin:hover {
+            color: #333;
+        }
+    </style>
+</head>
+<body>
+    <div class="admin-container">
+        <div class="admin-header">
+            <h1>Panel de Administración</h1>
+            <button class="btn-logout-admin" onclick="cerrarSesion()">Cerrar Sesión</button>
+        </div>
+
+        <div class="admin-tabs">
+            <button class="tab-btn-admin active" data-tab="crear">Crear Evento</button>
+            <button class="tab-btn-admin" data-tab="gestionar">Gestionar Eventos</button>
+        </div>
+
+        <div class="admin-content">
+            <!-- Sección Crear Evento -->
+            <div id="crear" class="section-admin active">
+                <h2>Crear Nuevo Evento</h2>
+                <div id="alertCrear"></div>
+                
+                <form id="formCrearEvento">
+                    <div class="form-group">
+                        <label>Título del Evento *</label>
+                        <input type="text" id="titulo" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Fecha *</label>
+                        <input type="date" id="fecha" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Hora *</label>
+                        <input type="time" id="hora" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Lugar *</label>
+                        <input type="text" id="lugar" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Precio (ARS) *</label>
+                        <input type="number" id="precio" min="0" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Entradas Disponibles *</label>
+                        <input type="number" id="disponibles" min="1" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Imagen del Evento *</label>
+                        <input type="file" id="imagenFile" accept="image/*" required>
+                        <p style="color: #666; font-size: 0.9rem; margin-top: 5px;">Formatos: JPG, PNG, GIF (máx 5MB)</p>
+                        <div id="uploadProgress" style="display: none; margin-top: 10px;">
+                            <p>Subiendo imagen...</p>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Estado</label>
+                        <select id="activo">
+                            <option value="true">Activo (visible)</option>
+                            <option value="false">Inactivo (oculto)</option>
+                        </select>
+                    </div>
+
+                    <button type="submit" class="btn-submit">Crear Evento</button>
+                </form>
+            </div>
+
+            <!-- Sección Gestionar Eventos -->
+            <div id="gestionar" class="section-admin">
+                <h2>Gestionar Eventos</h2>
+                <div id="alertGestionar"></div>
+                <div id="eventosListContainer" class="eventos-list">
+                    <p>Cargando eventos...</p>
+                </div>
+            </div>
+            <!-- Modal Editar Evento -->
+            <div id="modalEditar" class="modal">
+                <div class="modal-content-admin">
+                    <span class="close-admin" onclick="cerrarModalEditar()">&times;</span>
+                    <h2>Editar Evento</h2>
+                    <div id="alertEditar"></div>
+                    
+                    <form id="formEditarEvento">
+                        <input type="hidden" id="editEventoId">
+                        
+                        <div class="form-group">
+                            <label>Título del Evento *</label>
+                            <input type="text" id="editTitulo" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label>Fecha *</label>
+                            <input type="date" id="editFecha" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label>Hora *</label>
+                            <input type="time" id="editHora" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label>Lugar *</label>
+                            <input type="text" id="editLugar" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label>Precio (ARS) *</label>
+                            <input type="number" id="editPrecio" min="0" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label>Entradas Disponibles *</label>
+                            <input type="number" id="editDisponibles" min="1" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label>Cambiar Imagen (opcional)</label>
+                            <input type="file" id="editImagenFile" accept="image/*">
+                            <p style="color: #666; font-size: 0.9rem; margin-top: 5px;">Deja vacío para mantener la imagen actual</p>
+                            <div id="editUploadProgress" style="display: none; margin-top: 10px;">
+                                <p>Subiendo imagen...</p>
+                            </div>
+                            <div id="imagenActual" style="margin-top: 10px;"></div>
+                        </div>
+
+                        <div class="form-group">
+                            <label>Estado</label>
+                            <select id="editActivo">
+                                <option value="true">Activo (visible)</option>
+                                <option value="false">Inactivo (oculto)</option>
+                            </select>
+                        </div>
+
+                        <button type="submit" class="btn-submit">Guardar Cambios</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+    <script src="../../js/firebase-config.js"></script>
+
+    <script>
+        // Verificar que sea admin
+        auth.onAuthStateChanged(async (user) => {
+            if (!user) {
+                alert('Debes iniciar sesión');
+                window.location.href = '../../index.html';
+                return;
+            }
+
+            // Verificar si es admin
+            try {
+                const adminDoc = await db.collection('admins').doc(user.email).get();
+                
+                if (!adminDoc.exists || adminDoc.data().role !== 'admin') {
+                    alert('No tienes permisos de administrador');
+                    window.location.href = '../../index.html';
+                    return;
+                }
+
+                console.log('Admin autenticado:', user.email);
+                cargarEventos();
+            } catch (error) {
+                console.error('Error verificando admin:', error);
+                alert('Error de autenticación');
+                window.location.href = '../../index.html';
+            }
+        });
+
+        // Tabs
+        document.querySelectorAll('.tab-btn-admin').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const tab = btn.getAttribute('data-tab');
+                
+                document.querySelectorAll('.tab-btn-admin').forEach(b => b.classList.remove('active'));
+                document.querySelectorAll('.section-admin').forEach(s => s.classList.remove('active'));
+                
+                btn.classList.add('active');
+                document.getElementById(tab).classList.add('active');
+            });
+        });
+
+        // Crear evento
+        document.getElementById('formCrearEvento').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const alertDiv = document.getElementById('alertCrear');
+            const progressDiv = document.getElementById('uploadProgress');
+            alertDiv.innerHTML = '';
+
+            // Validar que hay imagen
+            const imageFile = document.getElementById('imagenFile').files[0];
+            if (!imageFile) {
+                alertDiv.innerHTML = '<div class="alert alert-error">Debes seleccionar una imagen</div>';
+                return;
+            }
+
+            // Validar tamaño (5MB máx)
+            if (imageFile.size > 5 * 1024 * 1024) {
+                alertDiv.innerHTML = '<div class="alert alert-error">La imagen no debe superar 5MB</div>';
+                return;
+            }
+
+            try {
+                // Mostrar progreso
+                progressDiv.style.display = 'block';
+
+                // Subir imagen a ImgBB
+                const formData = new FormData();
+                formData.append('image', imageFile);
+
+                const imgbbResponse = await fetch('https://api.imgbb.com/1/upload?key=cb5abb61096d1d7a006b53ec2a9c38f9', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const imgbbData = await imgbbResponse.json();
+
+                if (!imgbbData.success) {
+                    throw new Error('Error subiendo imagen');
+                }
+
+                const imagenURL = imgbbData.data.url;
+                progressDiv.style.display = 'none';
+
+                // Crear evento con URL de imagen
+                const eventoData = {
+                    titulo: document.getElementById('titulo').value,
+                    fecha: document.getElementById('fecha').value,
+                    hora: document.getElementById('hora').value,
+                    lugar: document.getElementById('lugar').value,
+                    precio: parseInt(document.getElementById('precio').value),
+                    disponibles: parseInt(document.getElementById('disponibles').value),
+                    imagen: imagenURL,
+                    activo: document.getElementById('activo').value === 'true',
+                    creadoEn: firebase.firestore.FieldValue.serverTimestamp()
+                };
+
+                await db.collection('eventos').add(eventoData);
+                
+                alertDiv.innerHTML = '<div class="alert alert-success">Evento creado exitosamente</div>';
+                e.target.reset();
+                
+                setTimeout(() => {
+                    alertDiv.innerHTML = '';
+                }, 3000);
+                
+            } catch (error) {
+                console.error('Error creando evento:', error);
+                progressDiv.style.display = 'none';
+                alertDiv.innerHTML = '<div class="alert alert-error">Error al crear evento: ' + error.message + '</div>';
+            }
+        });
+                
+                        
+                    
+
+        // Cargar eventos
+        async function cargarEventos() {
+            const container = document.getElementById('eventosListContainer');
+            container.innerHTML = '';
+
+            try {
+                const eventosSnapshot = await db.collection('eventos')
+                    .orderBy('fecha', 'desc')
+                    .get();
+
+                if (eventosSnapshot.empty) {
+                    container.innerHTML = '<p>No hay eventos</p>';
+                    return;
+                }
+
+                eventosSnapshot.forEach(doc => {
+                    const evento = doc.data();
+                    const eventoId = doc.id;
+
+                    const item = document.createElement('div');
+                    item.className = 'evento-item-admin';
+                    item.innerHTML = `
+                        <div class="evento-info-admin">
+                            <h3>${evento.titulo}</h3>
+                            <p>${evento.fecha} - ${evento.hora} | ${evento.lugar}</p>
+                            <p>$${evento.precio.toLocaleString('es-AR')} | ${evento.disponibles} disponibles</p>
+                            <p><strong>Estado:</strong> ${evento.activo ? 'Activo' : 'Inactivo'}</p>
+                        </div>
+                        <div class="evento-actions">
+                            <button class="btn-edit" onclick="editarEvento('${eventoId}')">Editar</button>
+                            <button class="btn-toggle ${evento.activo ? '' : 'inactive'}" onclick="toggleEvento('${eventoId}', ${evento.activo})">
+                                ${evento.activo ? 'Desactivar' : 'Activar'}
+                            </button>
+                            <button class="btn-delete" onclick="eliminarEvento('${eventoId}')">Eliminar</button>
+                        </div>
+                    `;
+                    container.appendChild(item);
+                });
+
+            } catch (error) {
+                console.error('Error cargando eventos:', error);
+                container.innerHTML = '<p class="alert alert-error">Error cargando eventos</p>';
+            }
+        }
+
+        // Toggle activo/inactivo
+        async function toggleEvento(eventoId, estadoActual) {
+            if (!confirm('¿Cambiar el estado de este evento?')) return;
+
+            try {
+                await db.collection('eventos').doc(eventoId).update({
+                    activo: !estadoActual
+                });
+
+                const alertDiv = document.getElementById('alertGestionar');
+                alertDiv.innerHTML = '<div class="alert alert-success">Estado actualizado</div>';
+                setTimeout(() => alertDiv.innerHTML = '', 3000);
+
+                cargarEventos();
+            } catch (error) {
+                console.error('Error actualizando evento:', error);
+                alert('Error al actualizar evento');
+            }
+        }
+
+        // Eliminar evento
+        async function eliminarEvento(eventoId) {
+            if (!confirm('¿Estás seguro de eliminar este evento? Esta acción no se puede deshacer.')) return;
+
+            try {
+                await db.collection('eventos').doc(eventoId).delete();
+
+                const alertDiv = document.getElementById('alertGestionar');
+                alertDiv.innerHTML = '<div class="alert alert-success">Evento eliminado</div>';
+                setTimeout(() => alertDiv.innerHTML = '', 3000);
+
+                cargarEventos();
+            } catch (error) {
+                console.error('Error eliminando evento:', error);
+                alert('Error al eliminar evento');
+            }
+        }
+        // Abrir modal de edición
+        async function editarEvento(eventoId) {
+            try {
+                const eventoDoc = await db.collection('eventos').doc(eventoId).get();
+                
+                if (!eventoDoc.exists) {
+                    alert('Evento no encontrado');
+                    return;
+                }
+
+                const evento = eventoDoc.data();
+
+                // Llenar formulario con datos actuales
+                document.getElementById('editEventoId').value = eventoId;
+                document.getElementById('editTitulo').value = evento.titulo;
+                document.getElementById('editFecha').value = evento.fecha;
+                document.getElementById('editHora').value = evento.hora;
+                document.getElementById('editLugar').value = evento.lugar;
+                document.getElementById('editPrecio').value = evento.precio;
+                document.getElementById('editDisponibles').value = evento.disponibles;
+                document.getElementById('editActivo').value = evento.activo.toString();
+
+                // Mostrar imagen actual
+                document.getElementById('imagenActual').innerHTML = `
+                    <p style="font-size: 0.9rem; color: #666;">Imagen actual:</p>
+                    <img src="${evento.imagen}" style="max-width: 200px; border-radius: 5px; margin-top: 5px;" alt="Imagen actual">
+                `;
+
+                // Abrir modal
+                document.getElementById('modalEditar').classList.add('active');
+
+            } catch (error) {
+                console.error('Error cargando evento:', error);
+                alert('Error al cargar datos del evento');
+            }
+        }
+
+        // Cerrar modal
+        function cerrarModalEditar() {
+            document.getElementById('modalEditar').classList.remove('active');
+            document.getElementById('formEditarEvento').reset();
+            document.getElementById('alertEditar').innerHTML = '';
+        }
+
+        // Guardar cambios del evento
+        document.getElementById('formEditarEvento').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const alertDiv = document.getElementById('alertEditar');
+            const progressDiv = document.getElementById('editUploadProgress');
+            alertDiv.innerHTML = '';
+
+            const eventoId = document.getElementById('editEventoId').value;
+            
+            try {
+                let imagenURL = null;
+
+                // Si hay nueva imagen, subirla
+                const imageFile = document.getElementById('editImagenFile').files[0];
+                if (imageFile) {
+                    // Validar tamaño
+                    if (imageFile.size > 5 * 1024 * 1024) {
+                        alertDiv.innerHTML = '<div class="alert alert-error">La imagen no debe superar 5MB</div>';
+                        return;
+                    }
+
+                    progressDiv.style.display = 'block';
+
+                    const formData = new FormData();
+                    formData.append('image', imageFile);
+
+                    const imgbbResponse = await fetch('https://api.imgbb.com/1/upload?key=cb5abb61096d1d7a006b53ec2a9c38f9', {
+                        method: 'POST',
+                        body: formData
+                    });
+
+                    const imgbbData = await imgbbResponse.json();
+
+                    if (!imgbbData.success) {
+                        throw new Error('Error subiendo imagen');
+                    }
+
+                    imagenURL = imgbbData.data.url;
+                    progressDiv.style.display = 'none';
+                }
+
+                // Preparar datos actualizados
+                const eventoData = {
+                    titulo: document.getElementById('editTitulo').value,
+                    fecha: document.getElementById('editFecha').value,
+                    hora: document.getElementById('editHora').value,
+                    lugar: document.getElementById('editLugar').value,
+                    precio: parseInt(document.getElementById('editPrecio').value),
+                    disponibles: parseInt(document.getElementById('editDisponibles').value),
+                    activo: document.getElementById('editActivo').value === 'true',
+                    actualizadoEn: firebase.firestore.FieldValue.serverTimestamp()
+                };
+
+                // Solo actualizar imagen si se subió una nueva
+                if (imagenURL) {
+                    eventoData.imagen = imagenURL;
+                }
+
+                // Actualizar en Firestore
+                await db.collection('eventos').doc(eventoId).update(eventoData);
+                
+                alertDiv.innerHTML = '<div class="alert alert-success">Evento actualizado exitosamente</div>';
+                
+                setTimeout(() => {
+                    cerrarModalEditar();
+                    cargarEventos();
+                }, 1500);
+                
+            } catch (error) {
+                console.error('Error actualizando evento:', error);
+                progressDiv.style.display = 'none';
+                alertDiv.innerHTML = '<div class="alert alert-error">Error al actualizar evento: ' + error.message + '</div>';
+            }
+        });
+        // Cerrar sesión
+        function cerrarSesion() {
+            if (confirm('¿Cerrar sesión?')) {
+                auth.signOut().then(() => {
+                    window.location.href = '../../index.html';
+                });
+            }
+        }
+    </script>
+</body>
+</html>
