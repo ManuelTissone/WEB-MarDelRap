@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mar del Rap - Eventos de Hip Hop</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <!-- Navbar -->
+    <nav class="navbar">
+        <div class="container">
+            <div class="logo">
+                <img src="assets/images/LOGO_MDR.png" alt="Mar del Rap" class="logo-img">
+            </div>
+            <ul class="nav-links">
+                <li><a href="#eventos" class="scroll-link">Eventos</a></li>
+                <li><a href="#galeria" class="scroll-link">Galería</a></li>
+                <li><a href="#nosotros" class="scroll-link">Nosotros</a></li>
+                <li><a href="#" id="loginBtn" class="btn-primary">Ingresar</a></li>
+            </ul>
+            <div class="hamburger">
+                <span></span>
+                <span></span>
+                <span></span>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section id="hero" class="hero">
+        <div class="hero-overlay"></div>
+        <div class="hero-content">
+            <h1 class="hero-title">LA MEJOR ESCENA DE RAP</h1>
+            <p class="hero-subtitle">Eventos exclusivos con artistas de Buenos Aires</p>
+            <a href="#eventos" class="btn-hero scroll-link">Ver Próximos Eventos</a>
+        </div>
+    </section>
+
+    <!-- Eventos Section -->
+    <section id="eventos" class="eventos">
+        <div class="container">
+            <h2 class="section-title">Próximos Eventos</h2>
+            <div id="eventosContainer" class="eventos-grid">
+                <!-- Los eventos se cargarán dinámicamente desde JS -->
+            </div>
+        </div>
+    </section>
+
+    <!-- Galería Section -->
+    <section id="galeria" class="galeria">
+        <div class="container">
+            <h2 class="section-title">Galería</h2>
+            <div id="galeriaContainer" class="galeria-grid">
+                <!-- Las fotos se cargarán dinámicamente desde JS -->
+            </div>
+        </div>
+    </section>
+
+    <!-- Nosotros Section -->
+    <section id="nosotros" class="nosotros">
+        <div class="container">
+            <h2 class="section-title">Sobre Nosotros</h2>
+            <div class="nosotros-content">
+                <p>Somos el primer grupo de Mar del Plata en traer artistas de rap de Buenos Aires. Creamos experiencias únicas para la comunidad del hip hop.</p>
+                <div class="sponsors">
+                    <h3>Nuestros Sponsors</h3>
+                    <div id="sponsorsContainer" class="sponsors-grid">
+                        <img src="assets/images/LOGO_ENRAW.png" alt="Enraw" class="sponsor-logo">
+                        <img src="assets/images/LOGO_NOCAP.png" alt="NoCap" class="sponsor-logo">
+                        <img src="assets/images/ecko.jpeg" alt="Ecko" class="sponsor-logo">
+                        <!-- Los logos se cargarán aquí -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <p>&copy; 2025 Mar del Rap. Todos los derechos reservados.</p>
+            <div class="social-links">
+                <a href="#" target="_blank">Instagram</a>
+                <a href="#" target="_blank">Facebook</a>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Modal Login/Registro -->
+    <div id="authModal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <div id="authTabs">
+                <button class="tab-btn active" data-tab="login">Ingresar</button>
+                <button class="tab-btn" data-tab="register">Registrarse</button>
+            </div>
+            
+            <!-- Login Form -->
+            <div id="loginForm" class="auth-form active">
+                <h2>Iniciar Sesión</h2>
+                <form>
+                    <input type="email" id="loginEmail" placeholder="Email" required>
+                    <input type="password" id="loginPassword" placeholder="Contraseña" required>
+                    <button type="submit" class="btn-primary">Ingresar</button>
+                </form>
+                <p class="error-message" id="loginError"></p>
+            </div>
+
+            <!-- Register Form -->
+            <div id="registerForm" class="auth-form">
+                <h2>Crear Cuenta</h2>
+                <form>
+                    <input type="text" id="registerName" placeholder="Nombre completo" required>
+                    <input type="email" id="registerEmail" placeholder="Email" required>
+                    <input type="password" id="registerPassword" placeholder="Contraseña (mín. 6 caracteres)" required>
+                    <button type="submit" class="btn-primary">Registrarse</button>
+                </form>
+                <p class="error-message" id="registerError"></p>
+            </div>
+        </div>
+    </div>
+
+        <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+    <script src="js/firebase-config.js"></script>
+
+    <script src="js/app.js"></script>
+    <script src="js/auth.js"></script>
+</body>
+</html>
