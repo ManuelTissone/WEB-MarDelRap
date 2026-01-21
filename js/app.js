@@ -149,7 +149,7 @@ async function cargarGaleria() {
       const grid = document.createElement("div");
       grid.id = gridId;
       grid.className = "galeria-grid";
-      grid.style.maxHeight = "0";
+      grid.style.display = "none";
       grid.style.overflow = "hidden";
 
       galeria.fotos.forEach((fotoUrl, index) => {
@@ -171,8 +171,8 @@ async function cargarGaleria() {
         const gridElement = document.getElementById(gridId);
 
         if (
-          gridElement.classList.contains("closing") ||
-          gridElement.style.display === "none"
+          gridElement.style.display === "none" ||
+          gridElement.classList.contains("closing")
         ) {
           gridElement.style.display = "grid";
           gridElement.classList.remove("closing");
@@ -184,7 +184,7 @@ async function cargarGaleria() {
           overlay.textContent = `Ver galería (${galeria.fotos.length} fotos)`;
           setTimeout(() => {
             gridElement.style.display = "none";
-          }, 800);
+          }, 700);
         }
       };
 
