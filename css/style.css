@@ -254,7 +254,9 @@ section {
   }
 }
 .eventos {
-  position: relative;
+    position: relative;
+    z-index: 2;
+    isolation: isolate;
 }
 
 .eventos::before {
@@ -271,17 +273,20 @@ section {
   z-index: 0;
 }
 
-@media (max-width: 1200px) {
-  .eventos::before {
-    background-size: 200%;
-  }
-}
-
 @media (max-width: 768px) {
   .eventos::before {
-    background-size: 200%;
-    background-position: center;
-  }
+        background-size: cover !important;
+        background-position: center !important;
+        background-attachment: scroll !important;
+        opacity: 0.5 !important;
+    }
+    
+    .galeria {
+        background-size: cover !important;
+        background-position: center !important;
+        background-attachment: scroll !important;
+        background-clip: padding-box !important;
+    }
 }
 .eventos .container {
   position: relative;
@@ -415,18 +420,234 @@ section {
     letter-spacing: 2px;
   }
 }
-/* Galería */
-.galeria {
-  background: url("../assets/images/ADD/fondoGaleria.jpeg") center/cover
-    no-repeat;
+
+/* Tienda */
+.tienda {
+  padding: 0;
+  position: relative;
+}
+.tienda::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-image: url('../assets/images/ADD/fondoTienda.png');
+    background-size: cover;
+    background-position: center;
+    background-attachment: fixed;
+    transition: opacity 0.5s ease;
+    z-index: 0;
+    opacity: 1;
+}
+
+.tienda.cambiar-fondo::before {
+    animation: expandFondo 0.8s ease-out forwards;
+}
+
+.section-title-small {
+    font-size: 2rem;
+    font-weight: 900;
+    letter-spacing: 5px;
+    text-transform: uppercase;
+    background: linear-gradient(135deg, var(--color-primary), var(--color-accent));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    margin-bottom: 20px;
+    text-align: center;
+    filter: drop-shadow(3px 3px 6px rgba(0, 0, 0, 0.3));
+}
+
+/* Tabs de sponsors */
+.tienda-tabs {
+    display: flex;
+    justify-content: center;
+    gap: 0;
+    flex-wrap: wrap;
+    border-bottom: 3px solid #ddd;
+}
+
+.tienda-tab {
+  padding: 12px 25px;
+  background: transparent;
+  border: none;
+  border-bottom: 3px solid transparent;
+  font-size: 1.1rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.3s;
+  color: #0a0909;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  position: relative;
+  bottom: -3px;
+}
+
+.tienda-tab:hover {
+  color: var(--color-primary);
+  background: rgba(255, 107, 0, 0.1);
+}
+
+.tienda-tab.active {
+  color: var(--color-primary);
+  border-bottom-color: var(--color-primary);
+  background: rgba(255, 107, 0, 0.05);
+  font-weight: 900;
+}
+
+/* Contenedor con fondo dinámico */
+.tienda-content {
+  min-height: 600px;
+  padding: 60px 0;
+  position: relative;
+  background-image: url("../assets/images/ADD/fondoTienda.png");
+  background-size: cover;
+  background-position: center;
   background-attachment: fixed;
 }
 
+.tienda-content::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-size: cover;
+  background-position: center;
+  background-attachment: fixed;
+  opacity: 0;
+  transition: opacity 2.5s ease-in-out;
+  z-index: 0;
+  pointer-events: none;
+}
+
+.tienda-content.mostrar-overlay::after {
+  opacity: 1;
+}
+
+.tienda-content .container {
+  position: relative;
+  z-index: 1;
+}
+
+/* Grid de productos */
+.tienda-productos {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 20px;
+    opacity: 0;
+    max-height: 0;
+    overflow: hidden;
+    transition: opacity 0.8s ease, max-height 0.8s ease;
+}
+
+.tienda-productos.show {
+    opacity: 1;
+    max-height: 5000px;
+}
+
+/* Card de producto */
+.producto-card {
+  background: rgba(255, 255, 255, 0.5);
+  border-radius: 0;
+  overflow: hidden;
+  transition: all 0.3s;
+  cursor: pointer;
+  position: relative;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+.producto-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+}
+
+.producto-img {
+    width: 100%;
+    height: 280px;
+    object-fit: contain;
+    background: #f8f8f8;
+}
+
+.producto-badge {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    background: #000;
+    color: #fff;
+    padding: 5px 10px;
+    font-size: 0.75rem;
+    font-weight: bold;
+}
+
+.producto-info {
+    padding: 15px;
+    text-align: center;
+}
+
+.producto-nombre {
+    font-size: 0.95rem;
+    margin-bottom: 8px;
+    color: #333;
+    font-weight: 500;
+}
+
+.producto-precio {
+    font-size: 1.1rem;
+    font-weight: bold;
+    color: #000;
+}
+
+/* Responsive tienda */
 @media (max-width: 768px) {
-  .galeria {
-    background-size: cover;
-    background-position: center;
+    .section-title-small {
+        font-size: 1.5rem;
+        letter-spacing: 3px;
+    }
+    
+    .tienda-tab {
+        padding: 10px 15px;
+        font-size: 0.85rem;
+    }
+    
+    .tienda-productos {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 15px;
+    }
+    
+    .producto-img {
+        height: 220px;
+    }
+    
+    .tienda-content {
+        background-attachment: scroll;
+    }
+}
+/* Galería */
+section.galeria {
+    background: url('../assets/images/ADD/fondoGaleria.jpeg') center/cover no-repeat;
+    background-attachment: fixed;
+}
+
+@media (max-width: 768px) {
+  .section.galeria {
+    background-size: 200%;
+    background-position: center top;
     background-attachment: scroll;
+  }
+  
+  .galeria::before {
+    content: '';
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: url('../assets/images/ADD/fondoGaleria.jpeg') center/cover no-repeat;
+    z-index: -1;
   }
 }
 .galeria-evento {
@@ -794,4 +1015,33 @@ section {
 
 .galeria-grid.closing {
   animation: slideUp 0.7s ease-out forwards;
+}
+@keyframes expandFondo {
+    from {
+        transform: scale(1.1);
+        opacity: 0;
+    }
+    to {
+        transform: scale(1);
+        opacity: 1;
+    }
+}
+
+.tienda-content.cambiar-fondo {
+    animation: expandFondo 0.8s ease-out forwards;
+}
+/* Animación suave de fundido entre fondos */
+@keyframes fundirFondo {
+    0% {
+        opacity: 0;
+        filter: blur(5px);
+    }
+    100% {
+        opacity: 1;
+        filter: blur(0);
+    }
+}
+
+.tienda-content.animando-fondo {
+    animation: fundirFondo 1s ease-in-out;
 }

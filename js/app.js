@@ -235,6 +235,7 @@ window.addEventListener("scroll", () => {
 document.addEventListener("DOMContentLoaded", () => {
   cargarEventos();
   cargarGaleria();
+  cargarProductos("enraw");
 
   // Actualizar UI si hay usuario logueado
   const usuario = JSON.parse(localStorage.getItem("usuario"));
@@ -332,3 +333,188 @@ function abrirMapa(lugar) {
     "_blank",
   );
 }
+// Cambiar fondo de tienda según sponsor
+async function cambiarFondoTienda(sponsorId) {
+    try {
+        const tiendaContent = document.querySelector('.tienda-content');
+        const sponsorDoc = await db.collection('sponsors').doc(sponsorId).get();
+        
+        if (sponsorDoc.exists && sponsorDoc.data().fondo) {
+            const fondoURL = sponsorDoc.data().fondo;
+            
+            // Setear la nueva imagen en el ::after
+            tiendaContent.style.setProperty('--fondo-overlay', `url('${fondoURL}')`);
+            
+            // Agregar clase para mostrar overlay
+            tiendaContent.classList.add('mostrar-overlay');
+        }
+        
+    } catch (error) {
+        console.error('Error cargando fondo:', error);
+    }
+}
+// Cargar productos de un sponsor desde Firestore
+async function cargarProductos(sponsorId) {
+  const container = document.getElementById("tiendaProductos");
+  container.classList.remove("show"); // Ocultar primero
+  container.innerHTML =
+    '<p style="text-align: center; color: #999;">Cargando productos...</p>';
+  try {
+    const productosSnapshot = await db
+      .collection("productos")
+      .where("sponsorId", "==", sponsorId)
+      .get();
+
+    container.innerHTML = "";
+
+    if (productosSnapshot.empty) {
+      container.innerHTML =
+        '<p style="text-align: center; color: #999;">No hay productos disponibles para este sponsor</p>';
+      return;
+    }
+
+    productosSnapshot.forEach((doc) => {
+      const producto = doc.data();
+
+      const card = document.createElement("div");
+      card.className = "producto-card";
+
+      card.innerHTML = `
+                ${producto.nuevo ? '<div class="producto-badge">NEW</div>' : ""}
+                <img src="${producto.imagen}" alt="${producto.nombre}" class="producto-img">
+                <div class="producto-info">
+                    <p class="producto-nombre">${producto.nombre}</p>
+                    <p class="producto-precio">$${producto.precio.toLocaleString("es-AR")}</p>
+                    ${producto.stock > 0 ? `<p style="color: #666; font-size: 0.85rem; margin-top: 5px;">Stock: ${producto.stock}</p>` : '<p style="color: red; font-size: 0.85rem; margin-top: 5px;">Sin stock</p>'}
+                </div>
+            `;
+
+      container.appendChild(card);
+    });
+    setTimeout(() => {
+      container.classList.add("show");
+    }, 300);
+  } catch (error) {
+    console.error("Error cargando productos:", error);
+    container.innerHTML =
+      '<p style="text-align: center; color: red;">Error cargando productos</p>';
+  }
+}
+
+// Cambiar entre tabs de sponsors
+document.querySelectorAll(".tienda-tab").forEach((tab) => {
+  tab.addEventListener("click", () => {});
+});
+
+// Cargar tabs de sponsors y productos
+async function inicializarTienda() {
+  // Asegurar fondo por defecto
+  document
+    .querySelector(".tienda-content")
+    .style.setProperty(
+      "background-image",
+      "url('assets/images/ADD/fondoTienda.png')",
+      "important",
+    );
+
+  try {
+    const sponsorsSnapshot = await db.collection("sponsors").get();
+
+    if (sponsorsSnapshot.empty) {
+      document.getElementById("tiendaProductos").innerHTML =
+        '<p style="text-align: center; color: #999;">No hay sponsors disponibles</p>';
+      return;
+    }
+
+    const tabsContainer = document.querySelector(".tienda-tabs");
+    tabsContainer.innerHTML = "";
+
+    let primerSponsor = null;
+
+    sponsorsSnapshot.forEach((doc, index) => {
+      const sponsor = doc.data();
+      const sponsorId = doc.id;
+
+      if (index === 0) primerSponsor = sponsorId;
+
+      const tab = document.createElement("button");
+      tab.className = "tienda-tab" + (index === 0 ? " active" : "");
+      tab.setAttribute("data-sponsor", sponsorId);
+      tab.textContent = sponsor.nombre.toUpperCase();
+
+      tabsContainer.appendChild(tab);
+    });
+
+    // Agregar event listeners DESPUÉS de crear todos los tabs
+    const productosContainer = document.getElementById("tiendaProductos");
+
+    tabsContainer.querySelectorAll(".tienda-tab").forEach((tab) => {
+      tab.addEventListener("click", () => {
+        const sponsorId = tab.getAttribute("data-sponsor");
+
+        // Si ya está activo, colapsar
+        if (tab.classList.contains("active")) {
+          tab.classList.remove("active");
+          productosContainer.classList.remove("show");
+          productosContainer.innerHTML = '<p style="text-align: center; color: #999;">Seleccioná un sponsor para ver productos</p>';
+          
+          const tiendaContent = document.querySelector('.tienda-content');
+          tiendaContent.classList.remove('animando-fondo');
+          
+          setTimeout(() => {
+              tiendaContent.style.setProperty('background-image', "url('assets/images/ADD/fondoTienda.png')", 'important');
+              tiendaContent.classList.add('animando-fondo');
+          }, 50);
+      
+        } else {
+          // Activar y cargar productos
+          document
+            .querySelectorAll(".tienda-tab")
+            .forEach((t) => t.classList.remove("active"));
+          tab.classList.add("active");
+          cambiarFondoTienda(sponsorId);
+          cargarProductos(sponsorId);
+          // Agregar clase show después de cargar
+          setTimeout(() => {
+            productosContainer.classList.add("show");
+          }, 100);
+        }
+      });
+    });
+
+    // Cargar productos del primer sponsor
+    if (primerSponsor) {
+      cambiarFondoTienda(primerSponsor);
+      cargarProductos(primerSponsor);
+    }
+  } catch (error) {
+    console.error("Error inicializando tienda:", error);
+  }
+}
+
+// Cambiar fondo de tienda según sponsor
+async function cambiarFondoTienda(sponsorId) {
+  try {
+    const tiendaContent = document.querySelector(".tienda-content");
+
+    const sponsorDoc = await db.collection("sponsors").doc(sponsorId).get();
+
+    console.log("Sponsor doc exists:", sponsorDoc.exists);
+    console.log("Fondo URL:", sponsorDoc.data()?.fondo);
+
+    if (sponsorDoc.exists && sponsorDoc.data().fondo) {
+      const fondoURL = sponsorDoc.data().fondo;
+      console.log("Cambiando fondo a:", fondoURL);
+      tiendaContent.style.setProperty(
+        "background-image",
+        `url('${fondoURL}')`,
+        "important",
+      );
+    }
+  } catch (error) {
+    console.error("Error cargando fondo:", error);
+  }
+}
+
+// Llamar cuando carga la página
+inicializarTienda();
