@@ -283,7 +283,7 @@
                     ← Volver al Inicio
                 </a>
             </div>
-            <button class="btn-logout-admin" onclick="cerrarSesion()">Cerrar Sesión</button>
+            <button type="button" onclick="cerrarSesion()">Cerrar Sesión</button>
         </div>
         <div class="admin-tabs">
             <button class="tab-btn-admin active" data-tab="crear">Crear Evento</button>
@@ -464,50 +464,7 @@
                     </form>
                 </div>
             </div>
-            <!-- Modal Editar Sponsor -->
-            <div id="modalEditarSponsor" class="modal">
-                <div class="modal-content-admin">
-                    <span class="close-admin" onclick="cerrarModalEditarSponsor()">&times;</span>
-                    <h2>Editar Sponsor</h2>
-                    <div id="alertEditarSponsor"></div>
-                    
-                    <form id="formEditarSponsor">
-                        <input type="hidden" id="editSponsorId">
-                        
-                        <div class="form-group">
-                            <label>Nombre del Sponsor *</label>
-                            <input type="text" id="editSponsorNombre" required>
-                        </div>
-
-                        <div class="form-group">
-                            <label>ID del Sponsor (solo lectura)</label>
-                            <input type="text" id="editSponsorIdDisplay" disabled>
-                        </div>
-
-                        <div class="form-group">
-                            <label>Cambiar Logo (opcional)</label>
-                            <input type="file" id="editSponsorLogo" accept="image/*">
-                            <p style="color: #666; font-size: 0.9rem; margin-top: 5px;">Deja vacío para mantener el logo actual</p>
-                            <div id="editSponsorLogoProgress" style="display: none; margin-top: 10px;">
-                                <p>Subiendo logo...</p>
-                            </div>
-                            <div id="logoActual" style="margin-top: 10px;"></div>
-                        </div>
-
-                        <div class="form-group">
-                            <label>Cambiar Fondo (opcional)</label>
-                            <input type="file" id="editSponsorFondo" accept="image/*">
-                            <p style="color: #666; font-size: 0.9rem; margin-top: 5px;">Deja vacío para mantener el fondo actual</p>
-                            <div id="editSponsorFondoProgress" style="display: none; margin-top: 10px;">
-                                <p>Subiendo fondo...</p>
-                            </div>
-                            <div id="fondoActual" style="margin-top: 10px;"></div>
-                        </div>
-
-                        <button type="submit" class="btn-submit">Guardar Cambios</button>
-                    </form>
-                </div>
-            </div>
+            
              <!-- Sección Galería -->
             <div id="galeria" class="section-admin">
                 <h2>Gestionar Galerías de Eventos</h2>

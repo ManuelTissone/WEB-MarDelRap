@@ -266,7 +266,7 @@ section {
   left: 0;
   width: 100%;
   height: 100%;
-  background: url("../assets/images/ADD/mdr\ fopndo.jpeg") center center
+  background: url("../assets/images/ADD/mdr-fopndo.jpeg") center center
     no-repeat;
   background-size: 120%;
   opacity: 0.3;
@@ -561,15 +561,21 @@ section {
 }
 
 .producto-card:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+  transform: translateY(-5px) scale(1.05);
+  box-shadow: 0 10px 30px rgba(0,0,0,0.15);
 }
 
 .producto-img {
-    width: 100%;
-    height: 280px;
-    object-fit: contain;
-    background: #f8f8f8;
+  width: 100%;
+  height: 280px;
+  object-fit: contain;
+  background: #f8f8f8;
+  cursor: zoom-in;
+  transition: transform 0.3s ease;
+}
+
+.producto-img:hover {
+  transform: scale(1.05);
 }
 
 .producto-badge {
@@ -731,7 +737,7 @@ section.galeria {
   max-width: 200px;
   width: auto;
   object-fit: contain;
-  filter: grayscale(0%);
+  filter: grayscale(50%);
   transition: filter 0.3s;
 }
 
@@ -975,17 +981,6 @@ section.galeria {
 @keyframes slideDown {
   from {
     opacity: 0;
-    transform: translateY(-30px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-@keyframes slideDown {
-  from {
-    opacity: 0;
     max-height: 0;
     transform: translateY(-20px);
   }
@@ -1028,7 +1023,7 @@ section.galeria {
 }
 
 .tienda-content.cambiar-fondo {
-    animation: expandFondo 0.8s ease-out forwards;
+    animation: expandFondo 1.2s ease-out forwards;
 }
 /* Animación suave de fundido entre fondos */
 @keyframes fundirFondo {
@@ -1043,5 +1038,5 @@ section.galeria {
 }
 
 .tienda-content.animando-fondo {
-    animation: fundirFondo 1s ease-in-out;
+    animation: fundirFondo 2s ease-in-out;
 }

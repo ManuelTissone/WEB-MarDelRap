@@ -1,6 +1,3 @@
-// Datos de ejemplo - Después conectarán Firebase
-const eventosEjemplo = [];
-
 // Smooth scroll para navegación
 document.querySelectorAll(".scroll-link").forEach((link) => {
   link.addEventListener("click", function (e) {
@@ -65,12 +62,12 @@ async function cargarEventos() {
                     <p><strong>Disponibles:</strong> ${evento.disponibles} entradas</p>
                     <div style="display: flex; gap: 10px; margin-top: 15px;">
                         <a href="#" class="btn-comprar" onclick="comprarEntrada(${eventoId}); return false;">Comprar Entrada</a>
-                        <button class="btn-mapa" onclick="abrirMapa('${evento.lugar}'); return false;" title="Ver ubicación">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
-                                <circle cx="12" cy="10" r="3"></circle>
-                            </svg>
-                        </button>
+                        <button class="btn-mapa" onclick="abrirMapa('${evento.lugar}'); return false;" title="Ver ubicación" aria-label="Ver ubicación en mapa">
+                          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                              <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
+                              <circle cx="12" cy="10" r="3"></circle>
+                          </svg>
+                      </button>
                     </div>
                 </div>
             `;
@@ -333,26 +330,6 @@ function abrirMapa(lugar) {
     "_blank",
   );
 }
-// Cambiar fondo de tienda según sponsor
-async function cambiarFondoTienda(sponsorId) {
-    try {
-        const tiendaContent = document.querySelector('.tienda-content');
-        const sponsorDoc = await db.collection('sponsors').doc(sponsorId).get();
-        
-        if (sponsorDoc.exists && sponsorDoc.data().fondo) {
-            const fondoURL = sponsorDoc.data().fondo;
-            
-            // Setear la nueva imagen en el ::after
-            tiendaContent.style.setProperty('--fondo-overlay', `url('${fondoURL}')`);
-            
-            // Agregar clase para mostrar overlay
-            tiendaContent.classList.add('mostrar-overlay');
-        }
-        
-    } catch (error) {
-        console.error('Error cargando fondo:', error);
-    }
-}
 // Cargar productos de un sponsor desde Firestore
 async function cargarProductos(sponsorId) {
   const container = document.getElementById("tiendaProductos");
@@ -380,8 +357,8 @@ async function cargarProductos(sponsorId) {
       card.className = "producto-card";
 
       card.innerHTML = `
-                ${producto.nuevo ? '<div class="producto-badge">NEW</div>' : ""}
-                <img src="${producto.imagen}" alt="${producto.nombre}" class="producto-img">
+        ${producto.nuevo ? '<div class="producto-badge">NEW</div>' : ''}
+        <img src="${producto.imagen}" alt="${producto.nombre}" class="producto-img" onclick="abrirLightboxProducto('${producto.imagen}', '${producto.nombre}')">
                 <div class="producto-info">
                     <p class="producto-nombre">${producto.nombre}</p>
                     <p class="producto-precio">$${producto.precio.toLocaleString("es-AR")}</p>
@@ -400,11 +377,6 @@ async function cargarProductos(sponsorId) {
       '<p style="text-align: center; color: red;">Error cargando productos</p>';
   }
 }
-
-// Cambiar entre tabs de sponsors
-document.querySelectorAll(".tienda-tab").forEach((tab) => {
-  tab.addEventListener("click", () => {});
-});
 
 // Cargar tabs de sponsors y productos
 async function inicializarTienda() {
@@ -456,16 +428,20 @@ async function inicializarTienda() {
         if (tab.classList.contains("active")) {
           tab.classList.remove("active");
           productosContainer.classList.remove("show");
-          productosContainer.innerHTML = '<p style="text-align: center; color: #999;">Seleccioná un sponsor para ver productos</p>';
-          
-          const tiendaContent = document.querySelector('.tienda-content');
-          tiendaContent.classList.remove('animando-fondo');
-          
+          productosContainer.innerHTML =
+            '<p style="text-align: center; color: #999;">Seleccioná un sponsor para ver productos</p>';
+
+          const tiendaContent = document.querySelector(".tienda-content");
+          tiendaContent.classList.remove("animando-fondo");
+
           setTimeout(() => {
-              tiendaContent.style.setProperty('background-image', "url('assets/images/ADD/fondoTienda.png')", 'important');
-              tiendaContent.classList.add('animando-fondo');
+            tiendaContent.style.setProperty(
+              "background-image",
+              "url('assets/images/ADD/fondoTienda.png')",
+              "important",
+            );
+            tiendaContent.classList.add("animando-fondo");
           }, 50);
-      
         } else {
           // Activar y cargar productos
           document
@@ -516,5 +492,62 @@ async function cambiarFondoTienda(sponsorId) {
   }
 }
 
-// Llamar cuando carga la página
-inicializarTienda();
+// Llamar cuando el DOM esté listo
+if (document.readyState === "loading") {
+  document.addEventListener("DOMContentLoaded", inicializarTienda);
+} else {
+  inicializarTienda();
+}
+// Lightbox para productos
+function abrirLightboxProducto(imagenURL, nombreProducto) {
+    // Crear lightbox si no existe
+    let lightbox = document.getElementById('lightbox-producto');
+    
+    if (!lightbox) {
+        lightbox = document.createElement('div');
+        lightbox.id = 'lightbox-producto';
+        lightbox.style.cssText = `
+            display: none;
+            position: fixed;
+            z-index: 9999;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.95);
+            align-items: center;
+            justify-content: center;
+            cursor: zoom-out;
+        `;
+
+        lightbox.innerHTML = `
+            <span style="position: absolute; top: 20px; right: 40px; color: white; font-size: 3rem; cursor: pointer; z-index: 10000;" onclick="cerrarLightboxProducto()">&times;</span>
+            <img id="lightbox-producto-img" style="max-width: 90%; max-height: 90%; object-fit: contain; cursor: default;">
+        `;
+
+        document.body.appendChild(lightbox);
+
+        // Cerrar con ESC
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') cerrarLightboxProducto();
+        });
+
+        // Cerrar al hacer click en el fondo
+        lightbox.addEventListener('click', (e) => {
+            if (e.target === lightbox) cerrarLightboxProducto();
+        });
+    }
+
+    // Mostrar imagen
+    document.getElementById('lightbox-producto-img').src = imagenURL;
+    lightbox.style.display = 'flex';
+    document.body.style.overflow = 'hidden';
+}
+
+function cerrarLightboxProducto() {
+    const lightbox = document.getElementById('lightbox-producto');
+    if (lightbox) {
+        lightbox.style.display = 'none';
+        document.body.style.overflow = 'auto';
+    }
+}
