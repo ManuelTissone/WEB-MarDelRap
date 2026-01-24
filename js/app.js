@@ -81,10 +81,11 @@ async function cargarEventos() {
   }
 }
 
-// Cargar galería desde Firebase
 // Cargar galerías de eventos pasados
 async function cargarGaleria() {
   const container = document.getElementById("galeriaContainer");
+  const verMasBtn = document.getElementById("galeriaVerMas");
+  const verMenosBtn = document.getElementById("galeriaVerMenos");
   container.innerHTML = "";
 
   try {
@@ -99,15 +100,24 @@ async function cargarGaleria() {
       return;
     }
 
+    let galeriaCount = 0;
+
     galeriasSnapshot.forEach((doc) => {
       const galeria = doc.data();
 
       // Solo mostrar si tiene fotos
       if (!galeria.fotos || galeria.fotos.length === 0) return;
 
+      galeriaCount++;
+
       // Crear contenedor por evento
       const eventoDiv = document.createElement("div");
       eventoDiv.className = "galeria-evento";
+
+      // Ocultar a partir de la 3ra galería
+      if (galeriaCount > 2) {
+        eventoDiv.classList.add("galeria-oculta");
+      }
 
       // Contenedor con imagen principal y botón expandir
       const preview = document.createElement("div");
@@ -189,6 +199,42 @@ async function cargarGaleria() {
       eventoDiv.appendChild(grid); // Agregar grid al evento
       container.appendChild(eventoDiv); // Agregar evento al container
     });
+
+    // Mostrar botón "Ver más..." si hay más de 2 galerías
+    if (galeriaCount > 2) {
+      verMasBtn.style.display = "block";
+
+      verMasBtn.onclick = () => {
+        const ocultas = document.querySelectorAll(".galeria-oculta");
+        ocultas.forEach((el, i) => {
+          setTimeout(() => {
+            el.classList.add("galeria-mostrar");
+          }, i * 150); // Stagger animation
+        });
+        verMasBtn.style.display = "none";
+        verMenosBtn.style.display = "block";
+      };
+
+      verMenosBtn.onclick = () => {
+        const mostradas = Array.from(document.querySelectorAll(".galeria-mostrar"));
+        const total = mostradas.length;
+        const reversed = [...mostradas].reverse();
+        reversed.forEach((el, i) => {
+          setTimeout(() => {
+            el.classList.add("galeria-ocultando");
+            if (i === total - 1) {
+              setTimeout(() => {
+                mostradas.forEach((el) => {
+                  el.classList.remove("galeria-mostrar", "galeria-ocultando");
+                });
+                verMenosBtn.style.display = "none";
+                verMasBtn.style.display = "block";
+              }, 500);
+            }
+          }, i * 150);
+        });
+      };
+    }
   } catch (error) {
     console.error("Error cargando galerías:", error);
     container.innerHTML =
@@ -355,14 +401,16 @@ async function cargarProductos(sponsorId) {
       card.className = "producto-card";
 
       card.innerHTML = `
-        ${producto.nuevo ? '<div class="producto-badge">NEW</div>' : ''}
+        ${producto.nuevo ? '<span class="producto-badge">NEW</span>' : ''}
         <img src="${producto.imagen}" alt="${producto.nombre}" class="producto-img" onclick="abrirLightboxProducto('${producto.imagen}', '${producto.nombre}')">
-                <div class="producto-info">
-                    <p class="producto-nombre">${producto.nombre}</p>
-                    <p class="producto-precio">$${producto.precio.toLocaleString("es-AR")}</p>
-                    ${producto.stock > 0 ? `<p style="color: #666; font-size: 0.85rem; margin-top: 5px;">Stock: ${producto.stock}</p>` : '<p style="color: red; font-size: 0.85rem; margin-top: 5px;">Sin stock</p>'}
-                </div>
-            `;
+        <div class="producto-info">
+          <p class="producto-nombre">${producto.nombre}</p>
+          <div class="producto-meta">
+            <span class="producto-precio">$${producto.precio.toLocaleString("es-AR")}</span>
+            <span class="producto-stock ${producto.stock > 0 ? '' : 'sin-stock'}">${producto.stock > 0 ? `Stock: ${producto.stock}` : 'Agotado'}</span>
+          </div>
+        </div>
+      `;
 
       container.appendChild(card);
     });
