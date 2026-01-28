@@ -1,3 +1,48 @@
+// Toast Notifications
+function showToast(message, type = 'info', duration = 4000) {
+  let container = document.getElementById('toast-container');
+  if (!container) {
+    container = document.createElement('div');
+    container.id = 'toast-container';
+    document.body.appendChild(container);
+  }
+
+  // Max 3 toasts — remove oldest if needed
+  while (container.children.length >= 3) {
+    container.removeChild(container.firstChild);
+  }
+
+  const toast = document.createElement('div');
+  toast.className = `toast toast-${type}`;
+  toast.innerHTML = `
+    ${message}
+    <button class="toast-close" onclick="this.parentElement.classList.add('removing'); setTimeout(() => this.parentElement.remove(), 300);">&times;</button>
+    <div class="toast-progress" style="animation-duration: ${duration}ms;"></div>
+  `;
+
+  container.appendChild(toast);
+
+  setTimeout(() => {
+    if (toast.parentElement) {
+      toast.classList.add('removing');
+      setTimeout(() => toast.remove(), 300);
+    }
+  }, duration);
+}
+
+// Preloader
+window.addEventListener("load", () => {
+  const preloader = document.getElementById("preloader");
+  if (preloader) {
+    setTimeout(() => {
+      preloader.classList.add("preloader-hidden");
+    }, 2000);
+    preloader.addEventListener("transitionend", () => {
+      preloader.remove();
+    });
+  }
+});
+
 // Smooth scroll para navegación
 document.querySelectorAll(".scroll-link").forEach((link) => {
   link.addEventListener("click", function (e) {
@@ -52,18 +97,20 @@ async function cargarEventos() {
       card.className = "evento-card";
 
       card.innerHTML = `
-                <img src="${evento.imagen}" alt="${evento.titulo}" class="evento-img" onerror="this.src='https://via.placeholder.com/400x250?text=Evento'">
+                <div class="evento-img-wrapper">
+                  <img src="${evento.imagen}" alt="${evento.titulo}" class="evento-img" onerror="this.src='https://via.placeholder.com/400x280?text=Evento'">
+                </div>
                 <div class="evento-info">
                     <h3>${evento.titulo}</h3>
                     <p><strong>Fecha:</strong> ${formatearFecha(evento.fecha)}</p>
                     <p><strong>Hora:</strong> ${evento.hora}</p>
                     <p><strong>Lugar:</strong> ${evento.lugar}</p>
                     <p class="evento-precio">$${evento.precio.toLocaleString("es-AR")}</p>
-                    <p><strong>Disponibles:</strong> ${evento.disponibles} entradas</p>
-                    <div style="display: flex; gap: 10px; margin-top: 15px;">
+                    <p class="evento-disponibles">${evento.disponibles} entradas disponibles</p>
+                    <div class="evento-botones">
                         <a href="#" class="btn-comprar" onclick="comprarEntrada(${eventoId}); return false;">Comprar Entrada</a>
                         <button class="btn-mapa" onclick="abrirMapa('${evento.lugar}'); return false;" title="Ver ubicación" aria-label="Ver ubicación en mapa">
-                          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                          <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                               <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
                               <circle cx="12" cy="10" r="3"></circle>
                           </svg>
@@ -254,30 +301,44 @@ function comprarEntrada(eventoId) {
   const usuario = JSON.parse(localStorage.getItem("usuario"));
 
   if (!usuario) {
-    alert("Debes iniciar sesión para comprar entradas");
+    showToast("Debes iniciar sesión para comprar entradas", "error");
     document.getElementById("loginBtn").click();
     return;
   }
 
   // Aquí irá la integración con MercadoPago
-  alert(`Próximamente: Compra de entrada para evento ${eventoId}`);
+  showToast("Próximamente: compra de entradas online", "info");
   // Redirigir a página de pago de MercadoPago
 }
 
-// Navbar transparente/sólido al hacer scroll
+// Navbar scroll + Hero parallax
 window.addEventListener("scroll", () => {
+  const scrollY = window.scrollY;
+
+  // Navbar background
   const navbar = document.querySelector(".navbar");
-  if (window.scrollY > 100) {
+  if (scrollY > 100) {
     navbar.style.background = "rgba(26, 26, 26, 0.95)";
   } else {
     navbar.style.background = "var(--color-secondary)";
   }
+
+  // Hero parallax (desktop only)
+  if (window.innerWidth > 768 && scrollY < window.innerHeight) {
+    const hero = document.querySelector(".hero");
+    const heroContent = document.querySelector(".hero-content");
+    hero.style.backgroundPositionY = `${scrollY * 0.4}px`;
+    heroContent.style.transform = `translateY(${-scrollY * 0.15}px)`;
+    heroContent.style.opacity = Math.max(0.4, 1 - (scrollY / window.innerHeight) * 0.6);
+  }
 });
 
 // Inicializar cuando cargue la página
-document.addEventListener("DOMContentLoaded", () => {
-  cargarEventos();
-  cargarGaleria();
+document.addEventListener("DOMContentLoaded", async () => {
+  await cargarEventos();
+  await cargarGaleria();
+  initScrollReveal();
+  initActiveNav();
 
   // Actualizar UI si hay usuario logueado
   const usuario = JSON.parse(localStorage.getItem("usuario"));
@@ -576,4 +637,81 @@ function cerrarLightboxProducto() {
         lightbox.style.display = 'none';
         document.body.style.overflow = 'auto';
     }
+}
+
+// Scroll Reveal Animations
+function initScrollReveal() {
+  const revealObserver = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        entry.target.classList.add('revealed');
+        revealObserver.unobserve(entry.target);
+      }
+    });
+  }, { threshold: 0.15 });
+
+  // Section titles
+  document.querySelectorAll('.section-title, .section-title-small').forEach(el => {
+    el.classList.add('scroll-reveal');
+    revealObserver.observe(el);
+  });
+
+  // Evento cards (stagger)
+  document.querySelectorAll('.evento-card').forEach((el, i) => {
+    el.classList.add('scroll-reveal');
+    el.style.transitionDelay = `${i * 100}ms`;
+    revealObserver.observe(el);
+  });
+
+  // Galeria eventos (stagger)
+  document.querySelectorAll('.galeria-evento').forEach((el, i) => {
+    el.classList.add('scroll-reveal');
+    el.style.transitionDelay = `${i * 150}ms`;
+    revealObserver.observe(el);
+  });
+
+  // Nosotros
+  const nosotrosTexto = document.querySelector('.nosotros-texto');
+  if (nosotrosTexto) {
+    nosotrosTexto.classList.add('scroll-reveal-left');
+    revealObserver.observe(nosotrosTexto);
+  }
+
+  const nosotrosSponsors = document.querySelector('.nosotros-sponsors');
+  if (nosotrosSponsors) {
+    nosotrosSponsors.classList.add('scroll-reveal-right');
+    revealObserver.observe(nosotrosSponsors);
+  }
+
+  // Tienda header
+  const tiendaHeader = document.querySelector('.tienda-header');
+  if (tiendaHeader) {
+    tiendaHeader.classList.add('scroll-reveal');
+    revealObserver.observe(tiendaHeader);
+  }
+}
+
+// Active Section Navbar Indicator
+function initActiveNav() {
+  const sections = document.querySelectorAll('#eventos, #tienda, #galeria, #nosotros');
+  const navLinksAll = document.querySelectorAll('.nav-links a.scroll-link');
+
+  const navObserver = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        const id = entry.target.getAttribute('id');
+        navLinksAll.forEach(link => {
+          link.classList.remove('active-link');
+          if (link.getAttribute('href') === `#${id}`) {
+            link.classList.add('active-link');
+          }
+        });
+      }
+    });
+  }, {
+    threshold: 0.4,
+    rootMargin: '-80px 0px 0px 0px'
+  });
+
+  sections.forEach(section => navObserver.observe(section));
 }

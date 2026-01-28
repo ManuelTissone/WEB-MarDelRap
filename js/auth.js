@@ -63,7 +63,7 @@ loginForm.querySelector('form').addEventListener('submit', async (e) => {
         e.target.reset();
         errorMsg.textContent = '';
         
-        alert('¡Bienvenido de nuevo!');
+        showToast('¡Bienvenido de nuevo!', 'success');
         
     } catch (error) {
         console.error('Error login:', error);
@@ -117,7 +117,7 @@ registerForm.querySelector('form').addEventListener('submit', async (e) => {
         e.target.reset();
         errorMsg.textContent = '';
         
-        alert('¡Cuenta creada exitosamente!');
+        showToast('¡Cuenta creada exitosamente!', 'success');
         
     } catch (error) {
         console.error('Error registro:', error);

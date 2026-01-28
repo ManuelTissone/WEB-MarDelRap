@@ -625,10 +625,37 @@
     <script src="../../js/firebase-config.js"></script>
 
     <script>
+        // Toast Notifications (inline for admin)
+        function showToast(message, type = 'info', duration = 4000) {
+          let container = document.getElementById('toast-container');
+          if (!container) {
+            container = document.createElement('div');
+            container.id = 'toast-container';
+            document.body.appendChild(container);
+          }
+          while (container.children.length >= 3) {
+            container.removeChild(container.firstChild);
+          }
+          const toast = document.createElement('div');
+          toast.className = `toast toast-${type}`;
+          toast.innerHTML = `
+            ${message}
+            <button class="toast-close" onclick="this.parentElement.classList.add('removing'); setTimeout(() => this.parentElement.remove(), 300);">&times;</button>
+            <div class="toast-progress" style="animation-duration: ${duration}ms;"></div>
+          `;
+          container.appendChild(toast);
+          setTimeout(() => {
+            if (toast.parentElement) {
+              toast.classList.add('removing');
+              setTimeout(() => toast.remove(), 300);
+            }
+          }, duration);
+        }
+
         // Verificar que sea admin
         auth.onAuthStateChanged(async (user) => {
             if (!user) {
-                alert('Debes iniciar sesión');
+                showToast('Debes iniciar sesión', 'error');
                 window.location.href = '../../index.html';
                 return;
             }
@@ -638,7 +665,7 @@
                 const adminDoc = await db.collection('admins').doc(user.email).get();
                 
                 if (!adminDoc.exists || adminDoc.data().role !== 'admin') {
-                    alert('No tienes permisos de administrador');
+                    showToast('No tienes permisos de administrador', 'error');
                     window.location.href = '../../index.html';
                     return;
                 }
@@ -649,7 +676,7 @@
                     cargarEventosPasados();
             } catch (error) {
                 console.error('Error verificando admin:', error);
-                alert('Error de autenticación');
+                showToast('Error de autenticación', 'error');
                 window.location.href = '../../index.html';
             }
         });
@@ -803,7 +830,7 @@
                 cargarEventos();
             } catch (error) {
                 console.error('Error actualizando evento:', error);
-                alert('Error al actualizar evento');
+                showToast('Error al actualizar evento', 'error');
             }
         }
 
@@ -821,7 +848,7 @@
                 cargarEventos();
             } catch (error) {
                 console.error('Error eliminando evento:', error);
-                alert('Error al eliminar evento');
+                showToast('Error al eliminar evento', 'error');
             }
         }
         // Abrir modal de edición
@@ -830,7 +857,7 @@
                 const eventoDoc = await db.collection('eventos').doc(eventoId).get();
                 
                 if (!eventoDoc.exists) {
-                    alert('Evento no encontrado');
+                    showToast('Evento no encontrado', 'error');
                     return;
                 }
 
@@ -857,7 +884,7 @@
 
             } catch (error) {
                 console.error('Error cargando evento:', error);
-                alert('Error al cargar datos del evento');
+                showToast('Error al cargar datos del evento', 'error');
             }
         }
 
@@ -1159,7 +1186,7 @@
                 cargarGaleriasAdmin();
             } catch (error) {
                 console.error('Error eliminando galería:', error);
-                alert('Error al eliminar galería');
+                showToast('Error al eliminar galería', 'error');
             }
         }
                 // ========== GESTIÓN DE TIENDA ==========
@@ -1344,7 +1371,7 @@
                 cargarSponsorsDropdown();
             } catch (error) {
                 console.error('Error eliminando sponsor:', error);
-                alert('Error al eliminar sponsor');
+                showToast('Error al eliminar sponsor', 'error');
             }
         }
 
@@ -1500,7 +1527,7 @@
                 setTimeout(() => alertDiv.innerHTML = '', 2000);
             } catch (error) {
                 console.error('Error actualizando stock:', error);
-                alert('Error al actualizar stock');
+                showToast('Error al actualizar stock', 'error');
             }
         }
 
@@ -1518,7 +1545,7 @@
                 cargarProductos();
             } catch (error) {
                 console.error('Error eliminando producto:', error);
-                alert('Error al eliminar producto');
+                showToast('Error al eliminar producto', 'error');
             }
         }
         // Abrir modal de edición de sponsor
@@ -1527,7 +1554,7 @@
                 const sponsorDoc = await db.collection('sponsors').doc(sponsorId).get();
                 
                 if (!sponsorDoc.exists) {
-                    alert('Sponsor no encontrado');
+                    showToast('Sponsor no encontrado', 'error');
                     return;
                 }
 
@@ -1555,7 +1582,7 @@
 
             } catch (error) {
                 console.error('Error cargando sponsor:', error);
-                alert('Error al cargar datos del sponsor');
+                showToast('Error al cargar datos del sponsor', 'error');
             }
         }
 
@@ -1670,7 +1697,7 @@
                 const productoDoc = await db.collection('productos').doc(productoId).get();
                 
                 if (!productoDoc.exists) {
-                    alert('Producto no encontrado');
+                    showToast('Producto no encontrado', 'error');
                     return;
                 }
 
@@ -1735,7 +1762,7 @@
 
             } catch (error) {
                 console.error('Error editando producto:', error);
-                alert('Error al editar producto');
+                showToast('Error al editar producto', 'error');
             }
         }
         // Inicializar tienda cuando se carga el admin
