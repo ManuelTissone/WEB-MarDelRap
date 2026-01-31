@@ -4,6 +4,8 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Mar del Rap - Eventos de Hip Hop</title>
+    <!-- Swiper CSS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css" />
     <link rel="stylesheet" href="css/style.css" />
   </head>
   <body>
@@ -67,8 +69,17 @@
     <section id="eventos" class="eventos">
       <div class="container">
         <h2 class="section-title">Próximos Eventos</h2>
-        <div id="eventosContainer" class="eventos-grid">
-          <!-- Los eventos se cargarán dinámicamente desde JS -->
+        <div class="eventos-carousel-wrapper">
+          <div class="swiper eventos-swiper">
+            <div id="eventosContainer" class="swiper-wrapper">
+              <!-- Los eventos se cargarán dinámicamente desde JS -->
+            </div>
+            <!-- Pagination -->
+            <div class="swiper-pagination"></div>
+          </div>
+          <!-- Navigation buttons -->
+          <div class="swiper-button-prev eventos-prev"></div>
+          <div class="swiper-button-next eventos-next"></div>
         </div>
       </div>
     </section>
@@ -195,6 +206,9 @@
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
     <script src="js/firebase-config.js"></script>
+
+    <!-- Swiper JS -->
+    <script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
 
     <script src="js/app.js"></script>
     <script src="js/auth.js"></script>

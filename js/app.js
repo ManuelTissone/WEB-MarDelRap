@@ -68,6 +68,7 @@ const navLinks = document.querySelector(".nav-links");
 
 hamburger.addEventListener("click", () => {
   navLinks.classList.toggle("active");
+  hamburger.classList.toggle("active");
 });
 
 // Cargar eventos desde Firebase
@@ -121,12 +122,74 @@ async function cargarEventos() {
 
       container.appendChild(card);
     });
+
+    // Inicializar Swiper SOLO en mobile
+    initEventosCarousel();
   } catch (error) {
     console.error("Error cargando eventos:", error);
     container.innerHTML =
       '<p style="text-align:center; color:red;">Error cargando eventos</p>';
   }
 }
+
+// Inicializar Swiper Carousel para eventos SOLO EN MOBILE
+let eventosSwiper = null;
+
+function initEventosCarousel() {
+  const isMobile = window.innerWidth <= 768;
+
+  if (isMobile && !eventosSwiper) {
+    // En mobile: convertir cards a swiper-slide
+    const container = document.getElementById("eventosContainer");
+    const cards = container.querySelectorAll('.evento-card');
+
+    // Wrap cada card en swiper-slide
+    cards.forEach(card => {
+      const slide = document.createElement('div');
+      slide.className = 'swiper-slide';
+      card.parentNode.insertBefore(slide, card);
+      slide.appendChild(card);
+    });
+
+    // Inicializar Swiper
+    eventosSwiper = new Swiper('.eventos-swiper', {
+      effect: 'coverflow',
+      grabCursor: true,
+      centeredSlides: true,
+      loop: true,
+      slidesPerView: 'auto',
+      coverflowEffect: {
+        rotate: 0,
+        stretch: 0,
+        depth: 100,
+        modifier: 2.5,
+        slideShadows: false,
+      },
+      autoplay: {
+        delay: 3500,
+        disableOnInteraction: false,
+        pauseOnMouseEnter: true,
+      },
+      pagination: {
+        el: '.swiper-pagination',
+        clickable: true,
+      },
+      navigation: {
+        nextEl: '.eventos-next',
+        prevEl: '.eventos-prev',
+      },
+    });
+  } else if (!isMobile && eventosSwiper) {
+    // En desktop: destruir Swiper si existe
+    eventosSwiper.destroy(true, true);
+    eventosSwiper = null;
+  }
+}
+
+// Reinicializar al cambiar tamaño de pantalla
+window.addEventListener('resize', () => {
+  initEventosCarousel();
+});
 
 // Cargar galerías de eventos pasados
 async function cargarGaleria() {
@@ -656,12 +719,14 @@ function initScrollReveal() {
     revealObserver.observe(el);
   });
 
-  // Evento cards (stagger)
-  document.querySelectorAll('.evento-card').forEach((el, i) => {
-    el.classList.add('scroll-reveal');
-    el.style.transitionDelay = `${i * 100}ms`;
-    revealObserver.observe(el);
-  });
+  // Evento cards (stagger) - solo en desktop
+  if (window.innerWidth > 768) {
+    document.querySelectorAll('.evento-card').forEach((el, i) => {
+      el.classList.add('scroll-reveal');
+      el.style.transitionDelay = `${i * 100}ms`;
+      revealObserver.observe(el);
+    });
+  }
 
   // Galeria eventos (stagger)
   document.querySelectorAll('.galeria-evento').forEach((el, i) => {
